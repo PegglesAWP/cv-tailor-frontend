@@ -1,13 +1,15 @@
-// API client configuration
-import axios from 'axios';
+import apiClient from './client';
+import authService from './authService';
+import userService from './userService';
+import experienceService from './experienceService';
+import documentService from './documentService';
+import employerService from './employerService';
 
-const API_URL = import.meta.env.VITE_API_URL || '<http://localhost:8000/api/v1>';
-
-const api = axios.create({
-  baseURL: API_URL,
-  headers: {
-    'Content-Type': 'application/json',
-  },
-});
-
-export default api;
+export {
+  apiClient,
+  authService,
+  userService,
+  experienceService,
+  documentService,
+  employerService,
+};
