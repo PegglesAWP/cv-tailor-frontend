@@ -22,6 +22,6 @@
     X-XSS-Protection = "1; mode=block"
 
 # Optional: Edge functions
-[[edge_functions]]
-  path = "/api/*"
-  function = "my-edge-function"
+# [[edge_functions]]
+#  path = "/api/*"
+#  function = "my-edge-function"
