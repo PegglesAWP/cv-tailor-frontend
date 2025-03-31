@@ -1,95 +1,88 @@
 import React, { createContext, useState, useEffect, useContext } from 'react';
-import { authService, userService } from '../api';
+import api from '../api';
 
-// Create context
-const AuthContext = createContext();
+// Create the context
+const AuthContext = createContext(null);
+
+// Custom hook to use the auth context
+export const useAuth = () => {
+  const context = useContext(AuthContext);
+  if (!context) {
+    throw new Error('useAuth must be used within an AuthProvider');
+  }
+  return context;
+};
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // Load user on initial render
+  // Check if user is already logged in on mount
   useEffect(() => {
-    const loadUser = async () => {
-      if (!authService.isLoggedIn()) {
-        setLoading(false);
-        return;
-      }
-
+    const checkAuthStatus = async () => {
       try {
-        const userData = await userService.getCurrentUser();
-        setUser(userData);
-        setError(null);
+        const token = localStorage.getItem('token');
+        
+        if (token) {
+          // Add token to API headers
+          api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+          
+          // Verify token is valid
+          const response = await api.get('/users/me');
+          setUser(response.data);
+        }
       } catch (err) {
-        console.error('Failed to load user:', err);
-        setError('Failed to load user profile');
-        authService.logout();
+        console.error('Auth status check failed:', err);
+        // Clear invalid token
+        localStorage.removeItem('token');
+        api.defaults.headers.common['Authorization'] = '';
       } finally {
         setLoading(false);
       }
     };
 
-    loadUser();
+    checkAuthStatus();
   }, []);
 
-  // Register a new user
-  const register = async (userData) => {
-    try {
-      setLoading(true);
-      const newUser = await authService.register(userData);
-      await authService.login(userData.email, userData.password);
-      setUser(newUser);
-      setError(null);
-      return newUser;
-    } catch (err) {
-      console.error('Registration failed:', err);
-      setError(err.response?.data?.detail || 'Registration failed');
-      throw err;
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Login user
+  // Login function
   const login = async (email, password) => {
     try {
-      setLoading(true);
-      await authService.login(email, password);
-      const userData = await userService.getCurrentUser();
-      setUser(userData);
       setError(null);
+      const response = await api.post('/auth/login', { email, password });
+      const { token, user: userData } = response.data;
+      
+      // Store token and update user state
+      localStorage.setItem('token', token);
+      api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+      setUser(userData);
+      
       return userData;
     } catch (err) {
       console.error('Login failed:', err);
-      setError(err.response?.data?.detail || 'Login failed');
+      setError(err.response?.data?.message || 'Login failed. Please try again.');
       throw err;
-    } finally {
-      setLoading(false);
     }
   };
 
-  // Logout user
-  const logout = () => {
-    authService.logout();
-    setUser(null);
-  };
-
-  // Update user profile
-  const updateProfile = async (userData) => {
+  // Register function
+  const register = async (userData) => {
     try {
-      setLoading(true);
-      const updatedUser = await userService.updateProfile(userData);
-      setUser(updatedUser);
       setError(null);
-      return updatedUser;
+      const response = await api.post('/auth/register', userData);
+      return response.data;
     } catch (err) {
-      console.error('Update profile failed:', err);
-      setError(err.response?.data?.detail || 'Update profile failed');
+      console.error('Registration failed:', err);
+      setError(err.response?.data?.message || 'Registration failed. Please try again.');
       throw err;
-    } finally {
-      setLoading(false);
     }
+  };
+
+  // Logout function
+  const logout = () => {
+    localStorage.removeItem('token');
+    api.defaults.headers.common['Authorization'] = '';
+    setUser(null);
   };
 
   // Context value
@@ -97,23 +90,13 @@ export const AuthProvider = ({ children }) => {
     user,
     loading,
     error,
-    register,
     login,
+    register,
     logout,
-    updateProfile,
-    isAuthenticated: !!user,
+    isAuthenticated: !!user
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
-};
-
-// Custom hook to use the auth context
-export const useAuth = () => {
-  const context = useContext(AuthContext);
-  if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider');
-  }
-  return context;
 };
 
 export default AuthContext;
