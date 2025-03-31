@@ -1,0 +1,30 @@
+[build]
+  command = "npm run build" # The command to build your project
+  publish = "dist"          # The directory where your build output is located
+  functions = "netlify/functions" # Optional: Directory for Netlify Functions
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+  force = true
+
+[[plugins]]
+  package = "@netlify/plugin-nextjs" # Example plugin for Next.js projects
+
+# Optional: Environment variables
+[build.environment]
+  NODE_VERSION = "18" # Specify the Node.js version
+  REACT_APP_API_URL = "https://cv-tailor-backend.onrender.com/" # Example environment variable
+
+# Optional: Custom headers
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "DENY"
+    X-XSS-Protection = "1; mode=block"
+
+# Optional: Edge functions
+[[edge_functions]]
+  path = "/api/*"
+  function = "my-edge-function"
