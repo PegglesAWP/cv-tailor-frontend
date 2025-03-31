@@ -2,6 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { Routes, Route } from 'react-router-dom';
 import api from './api';
 
+const apiUrl = import.meta.env.VITE_API_URL;
+console.log("API URL:", apiUrl);
+
 function App() {
   const [apiMessage, setApiMessage] = useState('');
   const [error, setError] = useState('');

@@ -1,28 +1,14 @@
-import apiClient from './client';
+import client from './client';
 
 // Register new user
 export const register = async (userData) => {
-  const response = await apiClient.post('/auth/register', userData);
+  const response = await client.post('/auth/register', userData);
   return response.data;
 };
 
 // Login user and get token
-export const login = async (email, password) => {
-  const formData = new FormData();
-  formData.append('username', email);
-  formData.append('password', password);
-
-  const response = await apiClient.post('/auth/login', formData, {
-    headers: {
-      'Content-Type': 'application/x-www-form-urlencoded',
-    },
-  });
-
-  // Store token in localStorage
-  if (response.data.access_token) {
-    localStorage.setItem('token', response.data.access_token);
-  }
-
+export const login = async (credentials) => {
+  const response = await client.post('/auth/login', credentials);
   return response.data;
 };
 
