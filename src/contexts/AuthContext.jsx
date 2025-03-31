@@ -21,12 +21,12 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   // Login function
-  const login = async (username, password) => {
+  const login = async (credentials) => {
     try {
-      const data = await loginService(username, password);
+      const data = await loginService(credentials.username, credentials.password);
       if (data && data.access_token) {
         localStorage.setItem('token', data.access_token);
-        const userData = { username };
+        const userData = { username: credentials.username };
         localStorage.setItem('user', JSON.stringify(userData));
         setUser(userData);
       }
@@ -89,3 +89,5 @@ export const useAuth = () => {
   }
   return context;
 };
+
+export default AuthContext;
