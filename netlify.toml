@@ -9,9 +9,6 @@
   status = 200
   force = true
 
-[[plugins]]
-  package = "@netlify/plugin-nextjs" # Example plugin for Next.js projects
-
 # Optional: Environment variables
 [build.environment]
   NODE_VERSION = "18" # Specify the Node.js version
